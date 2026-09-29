@@ -9,15 +9,16 @@ editor_options:
 ```{r}
 #| warning: false
 library(tidyverse)
+theme_set(theme_classic())
 ```
 
 ### Use of GitHub
 
-Link to your forked GH repository:
+Link to your forked GH repository: https://github.com/tbaugh323/Module1-climate
 
 ### Use of Quarto
 
-Link to your .qmd file:
+Link to your .qmd file: 
 
 ## CO2 trends from Mauna Loa
 
@@ -46,15 +47,41 @@ head(co2)
 
 Create a timeseries plot of average \[CO~2~\]. Use `as.Date()` to create a formatted date for the x-axis. Label both the y-axis and add a line to connect the points.
 
+```{r}
+co2 <- co2 |> 
+  mutate(year = as.character(year), month = as.character(month),
+         date = as.Date(paste0(year, "-" , month, "-15"), format = "%Y-%m-%d"))
+
+co2 |> 
+  ggplot(aes(x = date, y = average)) +
+  geom_point() +
+  geom_line(color = "red") +
+  labs(y = "Monthly Average CO2 (ppbv)", x = "Date")
+```
+
 ### Q2 (1 point)
 
 In which 3-month window are the \[CO~2~\] values at their seasonal peak? Create another dataframe with these months selected and create a plot like above, but with the maximum months colored in "forestgreen".
+
+```{r}
+co2_winter <- co2 |> 
+  filter(month %in% c(4, 5, 6))
+
+co2 |> 
+  ggplot(aes(x = date, y = average)) +
+  geom_point() +
+  geom_line(color = "red") +
+  geom_point(data = co2_winter, aes(x = date, y = average), color = "forestgreen") +
+  labs(y = "Monthly Average CO2 (ppbv)", x = "Date")
+```
 
 ### Q3 (1 point)
 
 Why does \[CO~2~\] peak in the months highlighted above? Consider the location of Mauna Loa and the seasonality of processes that emit and absorb \[CO~2~\].  
 
 After reading Lewandowsky et al. 2016, how might you go about separating the long term trend and the seasonal variation in \[CO~2~\]?
+
+\[CO~2~\] peaks in April, May, and June because this is right before the start of the growing season for most plants in the Northern Hemisphere. Therefore, the plants have been "off" for the maximum amount of time right before the summer, so \[CO~2~\] has been increasing for the maximum amount of time. Like Lewandowsky et al., you could do Z-scores to help quantify deviation. You could also do a yearly average instead of monthly averages, with error bars indicating variation from seasonality. This would help highlight multi year trends rather than intra year variation. 
 
 ## Global temperature
 
