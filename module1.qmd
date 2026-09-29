@@ -93,9 +93,17 @@ Read some [background](https://data.giss.nasa.gov/gistemp/history/background.htm
 
 How are the measurements made? Describe each column in the dataset and its units. What is the temporal resolution of the data?
 
+They sampling air temperature at several weather stations in geographically diverse locations around the world. Year is the year of measurements. There are two temperature columns describing temperature anomaly. The Lowess smoothing column are data which have been smoothed to remove annual variability, where the No_Smoothing column has no smoothing. Both temperature columns are in Celsius, and their temporal resolution is yearly.
+
 ### Q5 (1 point)
 
 Construct code to import the dataset from the above url in a format that can be used for transforming and visualization.
+
+```{r}
+temp <-read_table("https://data.giss.nasa.gov/gistemp/graphs/graph_data/Global_Mean_Estimates_based_on_Land_and_Ocean_Data/graph.txt", 
+                  skip = 5,
+                  col_names = c("Year", "No_Smoothing", "Lowess"))
+```
 
 ### Q6 (1 point)
 
