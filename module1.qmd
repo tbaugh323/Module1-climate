@@ -56,7 +56,7 @@ co2 |>
   ggplot(aes(x = date, y = average)) +
   geom_point() +
   geom_line(color = "red") +
-  labs(y = "Monthly Average CO2 (ppbv)", x = "Date")
+  labs(y = "Monthly Average CO2 (ppmv)", x = "Date")
 ```
 
 ### Q2 (1 point)
@@ -72,7 +72,7 @@ co2 |>
   geom_point() +
   geom_line(color = "red") +
   geom_point(data = co2_winter, aes(x = date, y = average), color = "forestgreen") +
-  labs(y = "Monthly Average CO2 (ppbv)", x = "Date")
+  labs(y = "Monthly Average CO2 (ppmv)", x = "Date")
 ```
 
 ### Q3 (1 point)
@@ -109,9 +109,20 @@ temp <-read_table("https://data.giss.nasa.gov/gistemp/graphs/graph_data/Global_M
 
 Plot the trend in global mean temperature over time. Describe what you see and how you interpret the patterns you observe.
 
+```{r}
+temp |> 
+  ggplot(aes(x = Year, y = No_Smoothing)) +
+  geom_point() +
+  labs(x = 'Date', y = 'Temperature Anomaly (C)')
+```
+
+The annual temperature anomaly begins to increase just after 1960. There is a decent amount of variability year-to-year but there is still a very clear upward trend in the more recent years. 
+
 ### Q7 (1 point)
 
 Consider the "pause" analyzed in Lewandowsky et al. 2016. Do you see evidence for such a pause?
+
+We do not see evidence for the supposed pause considered in Lewandowsky et al. 2016. Annual temperature anomaly is clearly and consistently increasing without a pause for the past 50 years. The variability year-to-year is not significant when compared to the long-term trend in the dataset.
 
 ### Bonus 1 (1 point)
 
@@ -126,6 +137,22 @@ Previously hosted by Oak Ridge National Lab, the [data](https://zenodo.org/recor
 ### Q8 (1 point)
 
 After downloading this dataset, create a folder entitled `data` and save the file within the folder with a .txt extension. Read this file into R. What are the columns and units? In the "Vostok CO2 record" section of Barnola et al. 1987, what is the temporal resolution of the data?
+
+```{r}
+co2_record <- read_delim('data/vostok.icecore.txt',
+                         skip = 21,
+                         col_names = c('depth', 'ice_age', 'air_age', 'co2'),
+                         delim = '\t') |> 
+  mutate(co2 = str_split_i(air_age, '\t', 2),
+         co2 = ifelse(is.na(co2), str_split_i(air_age, '   ', 2), co2),
+         co2 = ifelse(is.na(co2), str_split_i(air_age, '  ', 2), co2),
+         air_age = str_split_i(air_age, '\t', 1),
+         air_age = ifelse(grepl('   ', air_age), str_split_i(air_age, '   ', 1), air_age),
+         air_age = ifelse(grepl('  ', air_age), str_split_i(air_age, '  ', 1), air_age))
+
+```
+
+There is a depth column with units of meters, an age of ice column with units of years BP, an age of air column with units of years BP, and a co2 concentration column with units of ppmv. The temporal resolution is around 300-750 years.
 
 ### Q9 (1 point)
 
