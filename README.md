@@ -1,7 +1,9 @@
 # Module 1: Climate
 
 ## Team members and contributions
-To be updated
+team: Taylor and Matthew
+
+contributions: we updated the Readme and answered the questions in module1.qmd. We also added a data file in the data folder.
 
 ## Learning objectives
 

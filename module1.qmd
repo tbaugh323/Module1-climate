@@ -18,7 +18,7 @@ Link to your forked GH repository: https://github.com/tbaugh323/Module1-climate
 
 ### Use of Quarto
 
-Link to your .qmd file: 
+Link to your .qmd file: https://github.com/tbaugh323/Module1-climate/blob/main/module1.qmd 
 
 ## CO2 trends from Mauna Loa
 
@@ -158,10 +158,93 @@ There is a depth column with units of meters, an age of ice column with units of
 
 Transform the data as needed to create a plot in chronological order. Add at least two different smoothing window averages to your plot. How did you select the smoothing windows?
 
+```{r}
+bin_data <- function(bin_size) {
+  year_bins <- seq(0, 450000, bin_size)
+  mean_co2 <- c()
+  
+  for(i in (1:(length(year_bins) - 1))){
+    hold <- co2_record |> 
+      filter(air_age > year_bins[i] & air_age <= year_bins[i+1])
+  
+    mean_co2 <- append(mean_co2, mean(as.numeric(hold$co2)))
+  }
+  
+  binned_co2 <- data.frame(year_bins[-1] - bin_size / 2, mean_co2) |> 
+    filter(!is.na(mean_co2))
+  
+  colnames(binned_co2) <- c('year_bins', 'mean_co2')
+  
+  binned_co2
+}
+
+co2_5ka_record <- bin_data(5000)
+co2_10ka_record <- bin_data(10000)
+
+co2_record |> 
+  mutate(co2 = as.numeric(co2),
+         air_age = as.numeric(air_age)) |> 
+  ggplot(aes(x = air_age, y = co2)) + 
+  geom_point() + 
+  scale_x_reverse() +
+  geom_point(data = co2_5ka_record, aes(x = year_bins, y = mean_co2), color = 'tomato') +
+  geom_line(data = co2_5ka_record, aes(x = year_bins, y = mean_co2), color = 'tomato') +
+  geom_point(data = co2_10ka_record, aes(x = year_bins, y = mean_co2), color = 'blue') +
+  geom_line(data = co2_10ka_record, aes(x = year_bins, y = mean_co2), color = 'blue') +
+  annotate('text', x = 85000, y = 280, label = '5,000 year average', color = 'tomato') + 
+  annotate('text', x = 85000, y = 290, label = '10,000 year average', color = 'blue') + 
+  annotate('text', x = 85000, y = 300, label = 'original data', color = 'black') + 
+  labs(x = 'Age of Air (years)', y = 'CO2 concentation (ppmv)')
+
+```
+
+We chose our smoothing window by trying out a range of values and seeing what sizes over or undersmoothed the data. We settled on two values that we thought provided sufficient smoothing while still capturing the general trends present in the data.
+
 ### Q10 (1 point)
 
 Join your data with the Mauna Loa data and plot together, considering different colors for the different datasets.
 
+```{r}
+co2 <- co2 |> 
+  mutate(timestamp = 1987 - as.numeric(decimal_date))
+
+t <- c(co2_record$air_age, co2$timestamp)
+c <- c(co2_record$co2, co2$average)
+ds <- c(rep('ice_core', nrow(co2_record)), rep('measurements', nrow(co2)))
+
+joined_data <- data.frame(t, c, ds) |> 
+  mutate(t = as.numeric(t),
+         c = as.numeric(c))
+
+joined_data |> 
+  ggplot(aes(x = t, y = c, color = ds)) + 
+  geom_point() +
+  scale_x_reverse() + 
+  labs(x = 'years before 1987', 
+       y = 'CO2 concentration (ppmv)')
+
+joined_data <- joined_data |> 
+  mutate(ds = case_when(ds == "ice_core" ~ "Historic data",
+                        ds == "measurements" ~ "Anthropogenic time"))
+
+joined_data |> 
+  ggplot(aes(x = t, y = c, color = ds)) + 
+  geom_point() +
+  scale_x_reverse() + 
+  labs(x = 'Years before 1987', 
+       y = expression(paste(CO[2], " Concentration (ppmv)")),
+       color = "Dataset") +
+  scale_color_manual(values = c("tomato", "plum")) +
+  theme(axis.text = element_text(size = 13),
+        axis.title = element_text(size = 15),
+        legend.text = element_text(size = 13),
+        legend.title = element_text(size = 15))
+```
+
+
 ### Bonus 2 (1 point)
 
 Write a catchy title and short description in the style of a NYtimes infographic, contrasting the rate of anthropogenic vs. background climate change for a general public audience.
+
+Title: Cataclysmic Carbon Climb
+Description: Carbon emissions (measured in parts per million by volume) from two different datasets. Historic data (prior to ~2000 years ago) are derived from ice core records, in which carbon concentration in the air is captured in frozen water. Recent measurements (including data from the twentieth and twenty-first centuries) come from the Mauna Loa Observatory, and are measured with modern instruments. Recent (Mauna Loa) data are inferred to be affected by anthropogenic carbon emissions, whereas long term historic climate trends are captured in ice core data. Carbon emissions in recent decades spikes considerably compared to the historic averages.
